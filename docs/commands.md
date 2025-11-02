@@ -369,6 +369,7 @@ phantom completion <shell>
 - `fish` - Fish shell
 - `zsh` - Z shell
 - `bash` - Bash shell
+ - `powershell` - PowerShell (pwsh)
 
 **Installation:**
 
@@ -384,6 +385,12 @@ eval "$(phantom completion zsh)"
 # For Bash (add to .bashrc or .bash_profile)
 # Prerequisites: bash-completion v2 must be installed
 eval "$(phantom completion bash)"
+```
+
+# For PowerShell (pwsh)
+# Load into current session:
+phantom completion powershell | Out-String | Invoke-Expression
+# Persist: append output to your profile (e.g. $PROFILE)
 ```
 
 ## Exit Codes

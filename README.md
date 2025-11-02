@@ -87,7 +87,7 @@ Phantom provides perfect functionality as a command-line tool. Developers feel t
 
 #### Shell Completion
 
-Phantom supports full shell completion for Fish, Zsh, and Bash. Use tab key to complete commands and worktree names.
+Phantom supports full shell completion for Fish, Zsh, Bash, and PowerShell (pwsh). Use tab key to complete commands and worktree names.
 
 When installed via Homebrew, completions for Fish and Zsh are installed automatically. For Bash, you need to manually set up the completion:
 
@@ -96,6 +96,15 @@ When installed via Homebrew, completions for Fish and Zsh are installed automati
 
 # For Bash (add to your .bashrc or .bash_profile)
 eval "$(phantom completion bash)"
+```
+
+For PowerShell (pwsh):
+
+```powershell
+# Load into current session
+phantom completion powershell | Out-String | Invoke-Expression
+
+# To persist, append the output to your PowerShell profile (e.g. $PROFILE)
 ```
 
 #### tmux Integration

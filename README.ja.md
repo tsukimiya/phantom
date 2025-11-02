@@ -87,7 +87,7 @@ Phantomはコマンドラインツールとしての完璧な機能を備えて�
 
 #### シェル補完
 
-Phantomはfish,zsh,bashの完全なシェル補完をサポートしています。タブキーでコマンドやworktree名を補完できます。
+Phantomはfish, zsh, bash, および PowerShell (pwsh) の完全なシェル補完をサポートしています。タブキーでコマンドやworktree名を補完できます。
 
 Homebrewでインストールした場合、FishとZshの補完は自動的にインストールされます。Bashの場合は手動でセットアップする必要があります：
 
@@ -96,6 +96,15 @@ Homebrewでインストールした場合、FishとZshの補完は自動的に�
 
 # Bash用（.bashrcまたは.bash_profileに追加）
 eval "$(phantom completion bash)"
+```
+
+PowerShell (pwsh) の場合：
+
+```powershell
+# 現在のセッションに読み込む
+phantom completion powershell | Out-String | Invoke-Expression
+
+# 永続化するには、出力を $PROFILE に追記してください
 ```
 
 #### tmux統合

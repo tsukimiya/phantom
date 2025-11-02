@@ -434,17 +434,96 @@ _phantom_completion() {
 # Register the completion function
 complete -F _phantom_completion phantom`;
 
+const POWERSHELL_COMPLETION_SCRIPT = `# PowerShell completion for phantom
+# Load with: phantom completion powershell | Out-String | Invoke-Expression
+
+function Get-PhantomWorktrees {
+    try {
+        phantom list --names 2>$null
+    } catch {
+        @()
+    }
+}
+
+Register-ArgumentCompleter -Native -CommandName 'phantom' -ScriptBlock {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+    # Get words from AST
+    $words = $commandAst.ToString().Split() | Where-Object { $_ -ne '' }
+    if ($words.Length -le 1) {
+        $commands = 'create','attach','list','where','delete','exec','review','shell','github','gh','version','completion','mcp'
+        $commands | ForEach-Object {
+            if ($_.StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase)) {
+                [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+            }
+        }
+        return
+    }
+
+    $command = $words[1]
+
+    switch ($command) {
+        'create' {
+            $opts = '--shell','--exec','--tmux','--tmux-vertical','--tmux-horizontal','--copy-file','--base'
+            $opts | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_) }
+            return
+        }
+        'attach' {
+            if ($wordToComplete -like '--*') {
+                '--shell','--exec' | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_) }
+            }
+            return
+        }
+        'list' {
+            '--fzf','--names' | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_) }
+            return
+        }
+        'where'| 'delete' | 'review' | 'shell' {
+            if ($wordToComplete -like '--*') {
+                '--fzf' | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_) }
+                return
+            }
+            Get-PhantomWorktrees | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+            return
+        }
+        'exec' {
+            if ($wordToComplete -like '--*') {
+                '--fzf','--tmux','--tmux-vertical','--tmux-horizontal' | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_) }
+                return
+            }
+            Get-PhantomWorktrees | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+            return
+        }
+        'completion' {
+            'fish','zsh','bash','powershell' | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+            return
+        }
+        'github'| 'gh' {
+            if ($words.Length -eq 2) {
+                'checkout' | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+            }
+            return
+        }
+        'mcp' {
+            'serve' | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+            return
+        }
+        default { return }
+    }
+}
+`;
+
 export function completionHandler(args: string[]): void {
   const shell = args[0];
 
   if (!shell) {
-    output.error("Usage: phantom completion <shell>");
-    output.error("Supported shells: fish, zsh, bash");
+        output.error("Usage: phantom completion <shell>");
+        output.error("Supported shells: fish, zsh, bash, powershell");
     exit(1);
   }
 
   switch (shell.toLowerCase()) {
-    case "fish":
+        case "fish":
       console.log(FISH_COMPLETION_SCRIPT);
       break;
     case "zsh":
@@ -453,9 +532,13 @@ export function completionHandler(args: string[]): void {
     case "bash":
       console.log(BASH_COMPLETION_SCRIPT);
       break;
+        case "powershell":
+        case "pwsh":
+            console.log(POWERSHELL_COMPLETION_SCRIPT);
+            break;
     default:
-      output.error(`Unsupported shell: ${shell}`);
-      output.error("Supported shells: fish, zsh, bash");
+            output.error(`Unsupported shell: ${shell}`);
+            output.error("Supported shells: fish, zsh, bash, powershell");
       exit(1);
   }
 }

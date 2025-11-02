@@ -1,6 +1,10 @@
 {
   "postCreate": {
-    "copyFiles": [".claude/settings.local.json"],
+    "copyFiles": [
+      ".serena/project.yml",
+      ".serena/.gitignore",
+      ".serena/cache/"
+    ],
     "commands": ["pnpm install"]
   }
 }
