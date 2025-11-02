@@ -1,27 +1,35 @@
 import { deepStrictEqual } from "node:assert";
-import { describe, it, mock } from "node:test";
+import { describe, it } from "node:test";
 
-// Temporarily replace console.log to capture output
-const originalConsoleLog = console.log;
-const consoleLogMock = mock.fn();
-console.log = consoleLogMock;
+// Capture stdout (process.stdout.write) to verify completionHandler output
+const originalStdoutWrite = process.stdout.write;
+let stdoutBuffer = "";
+function startCapture() {
+  stdoutBuffer = "";
+  process.stdout.write = (chunk, encoding, cb) => {
+    stdoutBuffer += chunk instanceof Buffer ? chunk.toString() : chunk;
+    if (typeof cb === "function") cb();
+    return true;
+  };
+}
+function stopCapture() {
+  process.stdout.write = originalStdoutWrite;
+}
 
 const { completionHandler } = await import("./completion.ts");
 
 describe("completionHandler", () => {
   it("should output PowerShell completion script when requested", () => {
-    consoleLogMock.mock.resetCalls();
+    startCapture();
+    try {
+      completionHandler(["powershell"]);
+    } finally {
+      stopCapture();
+    }
 
-    completionHandler(["powershell"]);
-
-    deepStrictEqual(consoleLogMock.mock.calls.length > 0, true);
-    const out = consoleLogMock.mock.calls[0].arguments[0];
     // Basic sanity checks: contains Register-ArgumentCompleter and phantom list
-    deepStrictEqual(typeof out, "string");
-    deepStrictEqual(out.includes("Register-ArgumentCompleter"), true);
-    deepStrictEqual(out.includes("phantom list --names"), true);
+    deepStrictEqual(typeof stdoutBuffer, "string");
+    deepStrictEqual(stdoutBuffer.includes("Register-ArgumentCompleter"), true);
+    deepStrictEqual(stdoutBuffer.includes("phantom list --names"), true);
   });
 });
-
-// restore console.log
-console.log = originalConsoleLog;
